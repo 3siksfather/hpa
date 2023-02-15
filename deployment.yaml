@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: deployment-hpa
+  labels:
+    run: deployment-hpa
+spec:
+  selector:
+    matchLabels:
+      run: deployment-hpa
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: deployment-hpa
+    spec:
+      containers:
+      - name: deployment-hpa
+        image: k8s.gcr.io/hpa-example:latest
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "200m"
+          requests:
+            memory: "200Mi"
+            cpu: "200m"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: label
+                operator: In
+                values:
+                - idc
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-01
+                - node-02
+                - node-03
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deployment-hpa
+  labels:
+    run: deployment-hpa
+spec:
+  ports:
+  - port: 80
+  selector:
+    run: deployment-hpa
+  type: NodePort
